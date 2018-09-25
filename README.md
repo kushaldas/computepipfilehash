@@ -1,4 +1,4 @@
-# Compute dependency hashes from Pipefile.lock
+# Compute dependency hashes from Pipfile.lock
 
 This is a small tool to compute **sha256** hashes from the Pipfile.lock file.
 The `Pipfile.lock` file should exists in the current directory.
