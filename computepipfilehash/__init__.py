@@ -10,6 +10,7 @@ import subprocess
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--wheel-hashes', action='store_true')
+    parser.add_argument('--update-hashes', action='store_true')
     args = parser.parse_args()
     if args.wheel_hashes:
         # First find all of wheels and their names
@@ -18,13 +19,44 @@ def main():
             sys.exit(3)
         files = os.listdir("./localwheels/")
         for filename in files:
-            fullpath = os.path.join("./localwheels/", filename)
-            with open(fullpath, "br") as fobj:
-                data = fobj.read()
-
-            # Now compute the hash
-            digest = hashlib.sha256(data).hexdigest()
+            fullpath, digest = calculate_digest(filename)
             print("{} --hash=sha256:{}".format(fullpath, digest))
+
+    elif args.update_hashes:
+        # Check if we have a requirements-build.txt for not.
+        if not os.path.exists('requirements-build.txt'):
+            print("First generate a requirements-build.txt file.")
+            sys.exit(3)
+
+        # We have a requirements-build.txt file
+        with open("requirements-build.txt") as fobj:
+            lines = fobj.readlines()
+
+        files = os.listdir("./localwheels/")
+
+        newlines = []
+        for line in lines:
+            line = line.strip()
+            words = line.split()
+            packagename = "-".join(words[0].split("=="))
+
+            for name in files:
+                lowername = name.lower()
+                if not lowername.endswith(".whl"):  # Only for wheels
+                    continue
+                # Now check if a wheel is already available
+                if lowername.startswith(packagename):
+                    # Let us get the new hash of the wheel
+                    _, digest = calculate_digest(name)
+                    # Check if the sha256sum is already there or not
+                    if digest not in line:
+                        # Now add the hash to the line
+                        line = "{} --hash=sha256:{}".format(line, digest)
+            newlines.append(line)
+
+        # Finally write the result back to the file
+        with open("requirements-build.txt", "w") as fobj:
+            fobj.write("\n".join(newlines))
 
 
     else:
@@ -41,6 +73,16 @@ def main():
             hashes = " ".join(["--hash={}".format(value) for value in defaults[name]["hashes"]])
             print("{} {}".format(package_name,hashes))
                 
+
+def calculate_digest(filename):
+    "Calculates the sha256sum of a given file"
+    fullpath = os.path.join("./localwheels/", filename)
+    with open(fullpath, "br") as fobj:
+        data = fobj.read()
+
+    # Now compute the hash
+    digest = hashlib.sha256(data).hexdigest()
+    return fullpath, digest
 
 
 if __name__ == "__main__":
