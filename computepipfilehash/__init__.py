@@ -85,5 +85,19 @@ def calculate_digest(filename):
     return fullpath, digest
 
 
+def download_sources():
+    "Download the sources from PyPI"
+    cmd = "pip3 download --no-binary :all: -d ./localwheels/ -r requirements-build.txt"
+    output = subprocess.check_call(cmd.split())
+    sys.exit(output)
+
+
+def build_wheels():
+    "Build the wheels from the local directory"
+    cmd = "pip3 wheel --no-index --find-links ./localwheels/ -w ./localwheels/ -r requirements-build.txt"
+    output = subprocess.check_call(cmd.split())
+    sys.exit(output)
+
+
 if __name__ == "__main__":
     main()

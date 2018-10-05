@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="computepipfilehash",
-    version="0.0.1",
+    version="0.0.2",
     author="Kushal Das",
     author_email="mail@kushaldas.in",
     description="To generate requirements file with hashes.",
@@ -26,6 +26,8 @@ setuptools.setup(
     entry_points={
         'console_scripts': [
             'computepipfilehash = computepipfilehash:main',
+            'sd-downloadsources = computepipfilehash:download_sources',
+            'sd-buildwheels = computepipfilehash:build_wheels',
         ],
     },
 )
