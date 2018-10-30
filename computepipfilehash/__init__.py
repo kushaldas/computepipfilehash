@@ -19,6 +19,9 @@ def main():
             sys.exit(3)
         files = os.listdir("./localwheels/")
         for filename in files:
+            # We only want wheels here.
+            if not filename.endswith(".whl"):
+                continue
             fullpath, digest = calculate_digest(filename)
             print("{} --hash=sha256:{}".format(fullpath, digest))
 
@@ -38,14 +41,17 @@ def main():
         for line in lines:
             line = line.strip()
             words = line.split()
-            packagename = "-".join(words[0].split("=="))
+            values = words[0].split("==")
+            packagename = "-".join(values)
+            othername = "-".join([values[0].replace("-", "_"), values[1]])
 
             for name in files:
                 lowername = name.lower()
                 if not lowername.endswith(".whl"):  # Only for wheels
                     continue
+                package_othername = packagename.replace("-", "_")
                 # Now check if a wheel is already available
-                if lowername.startswith(packagename):
+                if lowername.startswith(packagename) or lowername.startswith(othername):
                     # Let us get the new hash of the wheel
                     _, digest = calculate_digest(name)
                     # Check if the sha256sum is already there or not
